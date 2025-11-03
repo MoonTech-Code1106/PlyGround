@@ -247,6 +247,86 @@ Events.on(mouseConstraint, "mousedown", e => {
     spawnedBodies = spawnedBodies.filter(b => b !== e.body);
   }
 });
+// --- Spacebar Explosion + Delayed Shockwave ---
+document.addEventListener("keydown", e => {
+  if (e.code === "Space") {
+    const x = mouse.position.x;
+    const y = mouse.position.y;
+
+    // 💣 Spawn explosive cube (TNT)
+    const bomb = Bodies.rectangle(x, y, 50, 50, {
+      restitution: 0.8,
+      frictionAir: 0.02,
+      render: { fillStyle: "#ff3333" }
+    });
+    World.add(world, bomb);
+    spawnedBodies.push(bomb);
+
+    // 💥 Wait, then detonate at TNT's actual position
+    setTimeout(() => {
+      const bx = bomb.position.x;
+      const by = bomb.position.y;
+
+      const blastRadius = 300;
+      const blastPower = 0.25;
+
+      spawnedBodies.forEach(body => {
+        if (body !== bomb && !body.isStatic) {
+          const dir = Vector.sub(body.position, { x: bx, y: by });
+          const dist = Vector.magnitude(dir);
+
+          if (dist < blastRadius) {
+            const normalized = Vector.normalise(dir);
+            const falloff = 1 - dist / blastRadius;
+            const force = Vector.mult(normalized, blastPower * falloff);
+            Body.applyForce(body, body.position, force);
+          }
+        }
+      });
+
+      // 💣 Remove bomb after blast
+      World.remove(world, bomb);
+      spawnedBodies = spawnedBodies.filter(b => b !== bomb);
+
+      // 🌊 Create shockwave AFTER explosion
+      setTimeout(() => {
+        const ring = {
+          x: bx,
+          y: by,
+          radius: 0,
+          opacity: 1
+        };
+        shockwaves.push(ring);
+      }, 200); // delay for realistic timing
+
+    }, 800); // detonation delay
+  }
+});
+
+// 🌀 Animate shockwave rings
+const shockwaves = [];
+
+(function animateShockwaves() {
+  requestAnimationFrame(animateShockwaves);
+  const ctx = render.context;
+
+  shockwaves.forEach((r, i) => {
+    r.radius += 6; // expansion speed
+    r.opacity -= 0.02; // fade out speed
+
+    if (r.opacity <= 0) {
+      shockwaves.splice(i, 1);
+      return;
+    }
+
+    ctx.beginPath();
+    ctx.arc(r.x, r.y, r.radius, 0, 2 * Math.PI);
+    ctx.strokeStyle = `rgba(255, 170, 0, ${r.opacity})`; // glowing orange
+    ctx.lineWidth = 5;
+    ctx.stroke();
+  });
+})();
+
 </script>
 </body>
 </html>
