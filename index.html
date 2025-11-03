@@ -268,7 +268,7 @@ document.addEventListener("keydown", e => {
       const by = bomb.position.y;
 
       const blastRadius = 300;
-      const blastPower = 0.25;
+      let blastPower = 0.45;
 
       spawnedBodies.forEach(body => {
         if (body !== bomb && !body.isStatic) {
