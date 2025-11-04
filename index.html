@@ -1,68 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <link rel="icon" href="Logo.png" type="image/png">
 <title>PlyGround Physics Engine</title>
-<!-- redeploy test -->
-
 <style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    background: #0d1117;
-    color: white;
-    font-family: "Segoe UI", sans-serif;
-  }
-
-  .navbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: linear-gradient(90deg, #00ff95, #0077ff);
-    padding: 10px 20px;
-  }
-
-  .navbar-left {
-    display: flex;
-    align-items: center;
-  }
-
-  .navbar img {
-    height: 40px;
-    margin-right: 10px;
-  }
-
-  .navbar h1 {
-    font-size: 22px;
-    margin: 0;
-  }
-
-  .delete-menu {
-    display: flex;
-    gap: 10px;
-  }
-
-  .delete-menu button {
-    background: #111;
-    color: white;
-    border: 1px solid #00ff95;
-    border-radius: 6px;
-    padding: 5px 10px;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-
-  .delete-menu button:hover {
-    background: #00ff95;
-    color: black;
-  }
-
-  canvas {
-    display: block;
-    background: #161b22;
-  }
+  body { margin:0; overflow:hidden; background:#0d1117; color:white; font-family:"Segoe UI",sans-serif; }
+  .navbar { display:flex; align-items:center; justify-content:space-between; background:linear-gradient(90deg,#00ff95,#0077ff); padding:10px 20px; }
+  .navbar-left { display:flex; align-items:center; }
+  .navbar img { height:40px; margin-right:10px; }
+  .navbar h1 { font-size:22px; margin:0; }
+  .delete-menu { display:flex; gap:10px; }
+  .delete-menu button { background:#111; color:white; border:1px solid #00ff95; border-radius:6px; padding:5px 10px; cursor:pointer; transition:0.2s; }
+  .delete-menu button:hover { background:#00ff95; color:black; }
+  canvas { display:block; background:#161b22; }
 </style>
 </head>
 <body>
@@ -72,7 +24,6 @@
     <img src="Logo.png" alt="Logo">
     <h1>PlyGround Physics Engine</h1>
   </div>
-
   <div class="delete-menu">
     <button id="delLast">Delete Last</button>
     <button id="delAll">Delete All</button>
@@ -103,98 +54,79 @@ const render = Render.create({
     wireframes: false,
   },
 });
-
 Render.run(render);
 Runner.run(Runner.create(), engine);
 
 // --- Boundaries ---
-const ground = Bodies.rectangle(canvas.width/2, canvas.height, canvas.width, 60, { isStatic: true });
-const leftWall = Bodies.rectangle(0, canvas.height/2, 60, canvas.height, { isStatic: true });
-const rightWall = Bodies.rectangle(canvas.width, canvas.height/2, 60, canvas.height, { isStatic: true });
+const ground = Bodies.rectangle(canvas.width/2, canvas.height, canvas.width, 60, { isStatic: true, label: "Ground" });
+const leftWall = Bodies.rectangle(0, canvas.height/2, 60, canvas.height, { isStatic: true, label: "Wall" });
+const rightWall = Bodies.rectangle(canvas.width, canvas.height/2, 60, canvas.height, { isStatic: true, label: "Wall" });
 World.add(world, [ground, leftWall, rightWall]);
 
 // --- Track spawned bodies ---
 let spawnedBodies = [];
 
-// --- Spawn Functions ---
+// --- Spawn Functions (labels added) ---
 function spawnBall(x, y) {
-  const ball = Bodies.circle(x, y, 30, { restitution: 0.9, friction: 0.01, render: { fillStyle: "#00ccff" } });
+  const ball = Bodies.circle(x, y, 30, { restitution: 0.9, friction: 0.01, render: { fillStyle: "#00ccff" }, label: "Ball" });
   World.add(world, ball);
   spawnedBodies.push(ball);
 }
-
 function spawnBox(x, y) {
-  const box = Bodies.rectangle(x, y, 60, 60, { restitution: 0.9, friction: 0.02, render: { fillStyle: "#ffcc00" } });
+  const box = Bodies.rectangle(x, y, 60, 60, { restitution: 0.9, friction: 0.02, render: { fillStyle: "#ffcc00" }, label: "Box" });
   World.add(world, box);
   spawnedBodies.push(box);
 }
-
 function spawnTriangle(x, y) {
-  const tri = Bodies.polygon(x, y, 3, 50, { restitution: 0.9, render: { fillStyle: "#ff6699" } });
+  const tri = Bodies.polygon(x, y, 3, 50, { restitution: 0.9, render: { fillStyle: "#ff6699" }, label: "Triangle" });
   World.add(world, tri);
   spawnedBodies.push(tri);
 }
-
 function spawnRod(x, y) {
-  const rod = Bodies.rectangle(x, y, 300, 35, { restitution: 0.9, friction: 0.02, density: 0.004, render: { fillStyle: "#88ff88" } });
+  const rod = Bodies.rectangle(x, y, 300, 35, { restitution: 0.9, friction: 0.02, density: 0.004, render: { fillStyle: "#88ff88" }, label: "Rod" });
   World.add(world, rod);
   spawnedBodies.push(rod);
 }
-
 function spawnStar(x, y) {
-  const star = Bodies.polygon(x, y, 5, 40, { restitution: 0.8, render: { fillStyle: "#ff33cc" } });
+  const star = Bodies.polygon(x, y, 5, 40, { restitution: 0.8, render: { fillStyle: "#ff33cc" }, label: "Star" });
   World.add(world, star);
   spawnedBodies.push(star);
 }
-
 function spawnHex(x, y) {
-  const hex = Bodies.polygon(x, y, 6, 50, { restitution: 0.8, render: { fillStyle: "#33ffcc" } });
+  const hex = Bodies.polygon(x, y, 6, 50, { restitution: 0.8, render: { fillStyle: "#33ffcc" }, label: "Hex" });
   World.add(world, hex);
   spawnedBodies.push(hex);
 }
-
 function spawnPlank(x, y) {
-  const plank = Bodies.rectangle(x, y, 400, 20, { restitution: 0.6, render: { fillStyle: "#ffaa33" } });
+  const plank = Bodies.rectangle(x, y, 400, 20, { restitution: 0.6, render: { fillStyle: "#ffaa33" }, label: "Plank" });
   World.add(world, plank);
   spawnedBodies.push(plank);
 }
-
 function spawnMiniBall(x, y) {
-  const small = Bodies.circle(x, y, 15, { restitution: 1.0, friction: 0, render: { fillStyle: "#ffffff" } });
+  const small = Bodies.circle(x, y, 15, { restitution: 1.0, friction: 0, render: { fillStyle: "#ffffff" }, label: "MiniBall" });
   World.add(world, small);
   spawnedBodies.push(small);
 }
-
 function spawnHeavyBlock(x, y) {
-  const heavy = Bodies.rectangle(x, y, 100, 100, { restitution: 0.1, density: 0.02, render: { fillStyle: "#7777ff" } });
+  const heavy = Bodies.rectangle(x, y, 100, 100, { restitution: 0.1, density: 0.02, render: { fillStyle: "#7777ff" }, label: "HeavyBlock" });
   World.add(world, heavy);
   spawnedBodies.push(heavy);
 }
 
 // --- Mouse Control ---
 const mouse = Mouse.create(render.canvas);
-const mouseConstraint = MouseConstraint.create(engine, {
-  mouse,
-  constraint: { stiffness: 0.2, render: { visible: false } }
-});
+const mouseConstraint = MouseConstraint.create(engine, { mouse, constraint: { stiffness: 0.2, render: { visible: false } } });
 World.add(world, mouseConstraint);
 render.mouse = mouse;
 
-// --- Throw Mechanics ---
 let dragStart = null;
 let dragBody = null;
-
-Events.on(mouseConstraint, "startdrag", e => {
-  dragBody = e.body;
-  dragStart = { ...mouse.position };
-});
-
+Events.on(mouseConstraint, "startdrag", e => { dragBody = e.body; dragStart = { ...mouse.position }; });
 Events.on(mouseConstraint, "enddrag", e => {
   if (dragBody) {
     const dragEnd = { ...mouse.position };
     const dir = Vector.sub(dragEnd, dragStart);
     const distance = Vector.magnitude(dir);
-
     if (distance > 10) {
       const normalized = Vector.normalise(dir);
       const power = Math.min(distance * 0.0004, 0.02);
@@ -208,16 +140,16 @@ Events.on(mouseConstraint, "enddrag", e => {
 
 // --- Spawn Hotkeys ---
 document.addEventListener("keydown", e => {
-  const key = e.key.toLowerCase();
-  if (key === "1") spawnBall(mouse.position.x, mouse.position.y);
-  if (key === "2") spawnBox(mouse.position.x, mouse.position.y);
-  if (key === "3") spawnTriangle(mouse.position.x, mouse.position.y);
-  if (key === "4") spawnRod(mouse.position.x, mouse.position.y);
-  if (key === "5") spawnStar(mouse.position.x, mouse.position.y);
-  if (key === "6") spawnHex(mouse.position.x, mouse.position.y);
-  if (key === "7") spawnPlank(mouse.position.x, mouse.position.y);
-  if (key === "8") spawnMiniBall(mouse.position.x, mouse.position.y);
-  if (key === "9") spawnHeavyBlock(mouse.position.x, mouse.position.y);
+  const k = e.key.toLowerCase();
+  if (k === "1") spawnBall(mouse.position.x, mouse.position.y);
+  if (k === "2") spawnBox(mouse.position.x, mouse.position.y);
+  if (k === "3") spawnTriangle(mouse.position.x, mouse.position.y);
+  if (k === "4") spawnRod(mouse.position.x, mouse.position.y);
+  if (k === "5") spawnStar(mouse.position.x, mouse.position.y);
+  if (k === "6") spawnHex(mouse.position.x, mouse.position.y);
+  if (k === "7") spawnPlank(mouse.position.x, mouse.position.y);
+  if (k === "8") spawnMiniBall(mouse.position.x, mouse.position.y);
+  if (k === "9") spawnHeavyBlock(mouse.position.x, mouse.position.y);
 });
 
 // --- Delete Menu ---
@@ -225,109 +157,287 @@ const delLastBtn = document.getElementById("delLast");
 const delAllBtn = document.getElementById("delAll");
 const delModeBtn = document.getElementById("delMode");
 let deleteMode = false;
-
-delLastBtn.onclick = () => {
-  const last = spawnedBodies.pop();
-  if (last) World.remove(world, last);
-};
-
-delAllBtn.onclick = () => {
-  spawnedBodies.forEach(b => World.remove(world, b));
-  spawnedBodies = [];
-};
-
-delModeBtn.onclick = () => {
-  deleteMode = !deleteMode;
-  delModeBtn.textContent = `Delete Mode: ${deleteMode ? "ON" : "OFF"}`;
-};
-
-// --- Delete on click ---
+delLastBtn.onclick = () => { const last = spawnedBodies.pop(); if (last) World.remove(world, last); };
+delAllBtn.onclick = () => window.location.reload();
+delModeBtn.onclick = () => { deleteMode = !deleteMode; delModeBtn.textContent = `Delete Mode: ${deleteMode ? "ON" : "OFF"}`; };
 Events.on(mouseConstraint, "mousedown", e => {
   if (deleteMode && e.body && !e.body.isStatic) {
     World.remove(world, e.body);
     spawnedBodies = spawnedBodies.filter(b => b !== e.body);
   }
 });
-// --- Spacebar Explosion + Delayed Shockwave ---
-document.addEventListener("keydown", e => {
-  if (e.code === "Space") {
-    const x = mouse.position.x;
-    const y = mouse.position.y;
 
-    // 💣 Spawn explosive cube (TNT)
-    const bomb = Bodies.rectangle(x, y, 50, 50, {
-      restitution: 0.8,
-      frictionAir: 0.02,
-      render: { fillStyle: "#ff3333" }
+// --- 🔥 FIRE SYSTEM ---
+const fires = [];
+const burningBodies = new Set();
+
+function createFireCluster(x, y, sizeFactor = 1) {
+  for (let i = 0; i < 8; i++) {
+    fires.push({
+      x: x + (Math.random() - 0.5) * 40,
+      y: y + (Math.random() - 0.5) * 40,
+      size: (Math.random() * 10 + 15) * sizeFactor,
+      life: 1,
+      rise: 1.8 + Math.random() * 1.8,
+      rotation: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.25,
     });
-    World.add(world, bomb);
-    spawnedBodies.push(bomb);
+  }
+}
 
-    // 💥 Wait, then detonate at TNT's actual position
-    setTimeout(() => {
-      const bx = bomb.position.x;
-      const by = bomb.position.y;
+(function animateFire() {
+  requestAnimationFrame(animateFire);
+  const ctx = render.context;
+  if (!ctx) return;
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  for (let i = fires.length - 1; i >= 0; i--) {
+    const f = fires[i];
+    f.y -= f.rise;
+    f.rotation += f.rotSpeed;
+    f.life -= 0.014;
+    const alpha = Math.max(f.life, 0);
+    const grad = ctx.createLinearGradient(f.x, f.y + f.size, f.x, f.y - f.size);
+    grad.addColorStop(0, "rgba(255,0,0,0.9)");
+    grad.addColorStop(1, "rgba(125,125,0,0.1)");
+    ctx.translate(f.x, f.y);
+    ctx.rotate(f.rotation);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = grad;
+    ctx.fillRect(-f.size / 2, -f.size / 2, f.size, f.size);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (f.life <= 0) fires.splice(i, 1);
+  }
+  ctx.restore();
+})();
 
-      const blastRadius = 300;
-      let blastPower = 0.45;
+// --- IGNITE & ASH SYSTEM ---
+function igniteNearbyBodies() {
+  for (const body of spawnedBodies) {
+    if (body.isStatic || !body.position) continue;
+    if (burningBodies.has(body)) continue;
+    if (body.label !== "Box" && body.label !== "Plank") continue;
 
-      spawnedBodies.forEach(body => {
-        if (body !== bomb && !body.isStatic) {
-          const dir = Vector.sub(body.position, { x: bx, y: by });
-          const dist = Vector.magnitude(dir);
+    for (const fire of fires) {
+      const dx = fire.x - body.position.x;
+      const dy = fire.y - body.position.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 60) igniteBody(body);
+    }
+  }
+}
+setInterval(igniteNearbyBodies, 100);
 
-          if (dist < blastRadius) {
-            const normalized = Vector.normalise(dir);
-            const falloff = 1 - dist / blastRadius;
-            const force = Vector.mult(normalized, blastPower * falloff);
-            Body.applyForce(body, body.position, force);
-          }
-        }
-      });
+function igniteBody(body) {
+  if (burningBodies.has(body)) return;
+  burningBodies.add(body);
 
-      // 💣 Remove bomb after blast
-      World.remove(world, bomb);
-      spawnedBodies = spawnedBodies.filter(b => b !== bomb);
+  const burnInterval = setInterval(() => {
+    if (!spawnedBodies.includes(body)) {
+      clearInterval(burnInterval);
+      burningBodies.delete(body);
+      return;
+    }
+    createFireCluster(body.position.x, body.position.y - 30, 0.8);
+  }, 200);
 
-      // 🌊 Create shockwave AFTER explosion
-      setTimeout(() => {
-        const ring = {
-          x: bx,
-          y: by,
-          radius: 0,
-          opacity: 1
-        };
-        shockwaves.push(ring);
-      }, 200); // delay for realistic timing
+  setTimeout(() => {
+    clearInterval(burnInterval);
+    burningBodies.delete(body);
+    turnToAsh(body);
+  }, 10000);
+}
 
-    }, 800); // detonation delay
+function turnToAsh(body) {
+  if (!spawnedBodies.includes(body)) return;
+  const ash = Bodies.rectangle(
+    body.position.x, body.position.y,
+    body.bounds.max.x - body.bounds.min.x,
+    body.bounds.max.y - body.bounds.min.y,
+    { restitution: 0.2, friction: 0.8, density: 0.0005, label: "Ash", render: { fillStyle: "#444" } }
+  );
+  World.remove(world, body);
+  World.add(world, ash);
+  spawnedBodies = spawnedBodies.filter(b => b !== body);
+  spawnedBodies.push(ash);
+}
+
+Events.on(engine, "collisionStart", e => {
+  for (const pair of e.pairs) {
+    [pair.bodyA, pair.bodyB].forEach(b => {
+      if (b.label === "Ash" && pair.collision.depth > 5) crumbleAsh(b);
+    });
   }
 });
 
-// 🌀 Animate shockwave rings
-const shockwaves = [];
+function crumbleAsh(ash) {
+  if (!spawnedBodies.includes(ash)) return;
+  const x = ash.position.x, y = ash.position.y;
+  World.remove(world, ash);
+  spawnedBodies = spawnedBodies.filter(b => b !== ash);
+  for (let i = 0; i < 8; i++) {
+    const frag = Bodies.circle(x + (Math.random() - 0.5) * 40, y + (Math.random() - 0.5) * 20, 5,
+      { restitution: 0.6, friction: 0.9, density: 0.0003, render: { fillStyle: "#555" } });
+    World.add(world, frag);
+    Body.applyForce(frag, frag.position, { x: (Math.random() - 0.5) * 0.002, y: -Math.random() * 0.002 });
+  }
+}
 
-(function animateShockwaves() {
-  requestAnimationFrame(animateShockwaves);
-  const ctx = render.context;
+// --- 🔦 TORCH SYSTEM (Dynamic, Textured Torch with Moving Flame) ---
+const torches = [];
 
-  shockwaves.forEach((r, i) => {
-    r.radius += 6; // expansion speed
-    r.opacity -= 0.02; // fade out speed
+function spawnTorch(x, y) {
+  const torch = Bodies.rectangle(x, y, 20, 120, {
+    restitution: 0.3,
+    friction: 0.6,
+    density: 0.002,
+    render: {
+      sprite: {
+        texture: "torch.png", // 🪵 Your torch image file
+        xScale: 0.25,          // adjust these two if needed
+        yScale: 0.25,
+      },
+    },
+    label: "Torch",
+  });
 
-    if (r.opacity <= 0) {
-      shockwaves.splice(i, 1);
+  World.add(world, torch);
+  spawnedBodies.push(torch);
+  torches.push(torch);
+
+  // 🔥 Fire that follows the top dynamically
+  const fireInterval = setInterval(() => {
+    if (!spawnedBodies.includes(torch)) {
+      clearInterval(fireInterval);
       return;
     }
 
+    // Dynamic top position using rotation
+    const topOffset = Vector.rotate({ x: 0, y: -60 }, torch.angle);
+    const topX = torch.position.x + topOffset.x;
+    const topY = torch.position.y + topOffset.y;
+
+    createFireCluster(topX, topY, 1.2);
+  }, 250);
+}
+
+// 🕯️ Press "T" to spawn torch
+document.addEventListener("keydown", e => {
+  if (e.key.toLowerCase() === "t") {
+    const { x, y } = mouse.position;
+    spawnTorch(x, y);
+  }
+});
+// --- TNT ARRAY ---
+let spawnedTNTs = [];
+
+// --- SPAWN TNT (Press T) ---
+document.addEventListener("keydown", e => {
+  if (e.key.toLowerCase() === "x") {
+    const tnt = Bodies.rectangle(mouse.position.x, mouse.position.y, 45, 45, {
+      label: "TNT",
+      restitution: 0.4,
+      friction: 0.6,
+      render: {
+        fillStyle: "#cc0000",
+        strokeStyle: "#ffffff",
+        lineWidth: 2
+      }
+    });
+    World.add(world, tnt);
+    spawnedBodies.push(tnt);
+    spawnedTNTs.push(tnt);
+  }
+});
+
+// --- IGNITE TNT (Press E) ---
+document.addEventListener("keydown", e => {
+  if (e.key.toLowerCase() === "e") {
+    if (spawnedTNTs.length === 0) return;
+
+    const nearestTNT = spawnedTNTs[spawnedTNTs.length - 1];
+
+    // 🔥 Visual fuse flame
+    createFireCluster(nearestTNT.position.x, nearestTNT.position.y, 1.4);
+
+    // 🧨 Text hint
+    const ctx = render.context;
+    ctx.font = "bold 18px Arial";
+    ctx.fillStyle = "white";
+    ctx.fillText("💥 FUSE LIT! GET BACK!", nearestTNT.position.x - 60, nearestTNT.position.y - 60);
+
+    // Delay for fuse (2.5s)
+    setTimeout(() => explodeTNT(nearestTNT), 2500);
+  }
+});
+
+
+// --- EXPLOSION FUNCTION ---
+function explodeTNT(tnt) {
+  const x = tnt.position.x;
+  const y = tnt.position.y;
+  const radius = 300; // Bigger blast radius
+
+  // 💥 Stronger visual shockwave
+  for (let i = 0; i < 25; i++) {
+    createFireCluster(x, y, 1.8);
+  }
+
+  // 🔊 Add visible expanding ring (shockwave)
+  let waveLife = 1;
+  const wave = { x, y, r: 0, life: waveLife };
+  const ctx = render.context;
+
+  function animateWave() {
+    if (wave.life <= 0) return;
+    requestAnimationFrame(animateWave);
+    wave.r += 25; // expand speed
+    wave.life -= 0.03;
+
+    ctx.save();
     ctx.beginPath();
-    ctx.arc(r.x, r.y, r.radius, 0, 2 * Math.PI);
-    ctx.strokeStyle = `rgba(255, 170, 0, ${r.opacity})`; // glowing orange
-    ctx.lineWidth = 5;
+    ctx.arc(wave.x, wave.y, wave.r, 0, 2 * Math.PI);
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = `rgba(255,255,255,${wave.life})`;
     ctx.stroke();
-  });
-})();
+    ctx.restore();
+  }
+  animateWave();
+
+  // 💨 Apply much stronger blast force
+  for (const body of spawnedBodies) {
+    if (body === tnt) continue;
+    const dx = body.position.x - x;
+    const dy = body.position.y - y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < radius) {
+      // Stronger and more consistent push
+      const forceMag = Math.max(0, 0.55 * (1 - dist / radius)); 
+      const angle = Math.atan2(dy, dx);
+      const force = {
+        x: Math.cos(angle) * forceMag,
+        y: Math.sin(angle) * forceMag - 0.02 // adds upward lift
+      };
+      Body.applyForce(body, body.position, force);
+    }
+  }
+
+
+  // 🔥 Ignite nearby boxes/planks only
+  for (const body of spawnedBodies) {
+    const dx = body.position.x - x;
+    const dy = body.position.y - y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 220 && (body.label === "Box" || body.label === "Plank")) {
+      igniteBody(body);
+    }
+  }
+
+  // 🧨 Remove TNT body
+  World.remove(world, tnt);
+  spawnedBodies = spawnedBodies.filter(b => b !== tnt);
+  spawnedTNTs = spawnedTNTs.filter(b => b !== tnt);
+}
+
 
 </script>
-</body>
-</html>
