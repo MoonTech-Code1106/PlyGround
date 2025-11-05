@@ -73,7 +73,18 @@ function spawnBall(x, y) {
   spawnedBodies.push(ball);
 }
 function spawnBox(x, y) {
-  const box = Bodies.rectangle(x, y, 60, 60, { restitution: 0.9, friction: 0.02, render: { fillStyle: "#ffcc00" }, label: "Box" });
+  const box = Bodies.rectangle(x, y, 60, 60, {
+    restitution: 0.9,
+    friction: 0.02,
+    render: {
+      sprite: {
+        texture: "Box.png",  
+        xScale: 0.15,               
+        yScale: 0.15
+      }
+    },
+    label: "Box"
+  });
   World.add(world, box);
   spawnedBodies.push(box);
 }
@@ -107,12 +118,6 @@ function spawnMiniBall(x, y) {
   World.add(world, small);
   spawnedBodies.push(small);
 }
-function spawnHeavyBlock(x, y) {
-  const heavy = Bodies.rectangle(x, y, 100, 100, { restitution: 0.1, density: 0.02, render: { fillStyle: "#7777ff" }, label: "HeavyBlock" });
-  World.add(world, heavy);
-  spawnedBodies.push(heavy);
-}
-
 // --- Mouse Control ---
 const mouse = Mouse.create(render.canvas);
 const mouseConstraint = MouseConstraint.create(engine, { mouse, constraint: { stiffness: 0.2, render: { visible: false } } });
@@ -149,7 +154,6 @@ document.addEventListener("keydown", e => {
   if (k === "6") spawnHex(mouse.position.x, mouse.position.y);
   if (k === "7") spawnPlank(mouse.position.x, mouse.position.y);
   if (k === "8") spawnMiniBall(mouse.position.x, mouse.position.y);
-  if (k === "9") spawnHeavyBlock(mouse.position.x, mouse.position.y);
 });
 
 // --- Delete Menu ---
@@ -250,12 +254,30 @@ function igniteBody(body) {
 
 function turnToAsh(body) {
   if (!spawnedBodies.includes(body)) return;
+
+  const width = body.bounds.max.x - body.bounds.min.x;
+  const height = body.bounds.max.y - body.bounds.min.y;
+
   const ash = Bodies.rectangle(
-    body.position.x, body.position.y,
-    body.bounds.max.x - body.bounds.min.x,
-    body.bounds.max.y - body.bounds.min.y,
-    { restitution: 0.2, friction: 0.8, density: 0.0005, label: "Ash", render: { fillStyle: "#444" } }
+    body.position.x,
+    body.position.y,
+    width,
+    height,
+    {
+      restitution: 0.2,
+      friction: 0.8,
+      density: 0.0005,
+      label: "Ash",
+      render: {
+        sprite: {
+          texture: "Ash.png",  // 💀 your ash texture file
+          xScale: width / 512,         // adjust depending on texture resolution
+          yScale: height / 512
+        }
+      }
+    }
   );
+
   World.remove(world, body);
   World.add(world, ash);
   spawnedBodies = spawnedBodies.filter(b => b !== body);
@@ -275,11 +297,30 @@ function crumbleAsh(ash) {
   const x = ash.position.x, y = ash.position.y;
   World.remove(world, ash);
   spawnedBodies = spawnedBodies.filter(b => b !== ash);
+
   for (let i = 0; i < 8; i++) {
-    const frag = Bodies.circle(x + (Math.random() - 0.5) * 40, y + (Math.random() - 0.5) * 20, 5,
-      { restitution: 0.6, friction: 0.9, density: 0.0003, render: { fillStyle: "#555" } });
+    const size = 8 + Math.random() * 4; // random chunk size
+    const frag = Bodies.rectangle(
+      x + (Math.random() - 0.5) * 40,
+      y + (Math.random() - 0.5) * 20,
+      size,
+      size,
+      {
+        restitution: 0.6,
+        friction: 0.9,
+        density: 0.0003,
+        render: {
+          fillStyle: "#555", // dark grey for ash
+        },
+        label: "AshFragment",
+      }
+    );
+
     World.add(world, frag);
-    Body.applyForce(frag, frag.position, { x: (Math.random() - 0.5) * 0.002, y: -Math.random() * 0.002 });
+    Body.applyForce(frag, frag.position, {
+      x: (Math.random() - 0.5) * 0.002,
+      y: -Math.random() * 0.002,
+    });
   }
 }
 
