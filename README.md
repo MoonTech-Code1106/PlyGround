@@ -4,9 +4,9 @@ Hello Skippers, guess, you have found a small piece of scrappy work of mine ;)
 Well, skippers, this a physics engine, like sandbox, It have many function and I will **TRY** to update regularly
 # Updates??
 So, Ther are few updates planned like:
-1. Basic Upgarde:1 - Complete
-2. Basic Upgrade:2 - Complete
-3. Basic Upgrade:3
+1. Basic Upgarde: 1 - Complete
+2. Basic Upgrade: 2 - Complete
+3. Basic Upgrade: 3 - Complete
 4. UI Update
 6. Lights update
 7. Electronic Update
@@ -32,6 +32,10 @@ Press **X** to get a **BoomBox(TNT)** and E to Ignite it, ****DANGER!!!****, Ign
 Well Skippers, I have removed the Heavy_Box, due to its **SQUASHING** problem, I will try adding it sooner or later or Just RIP,
 
 And here is the Good News, A new **FIRE** Machinic is added in which a new "Torch" is added that will emit Flames.if Box or Plank touches it, It Will caught Flames too and soon turn into ash, the ash If thrown hard will crumples in small blocks
+
+The new **ROPE**, in which, the Q key will activete the function and if hover over a block a Green box will appear if clicked pess the next block, the new Rope will appear binding to remove press R
+
+The New **Screw**, in which, if a object is dragged and pressed Z, a screw will appear, making dynamic things static, can be removed by pressing C
 
 -------------------------
 **MINOR UPDATES**
