@@ -42,9 +42,10 @@ The New **Screw**, in which, if a object is dragged and pressed Z, a screw will 
 
 1. Added Textures to Box and Ash
 2. improved TNT
+3. Added custom pointer
  
 
 
  
-try at : https://moontech-code1106.github.io/PlyGround/
+Try at : https://moontech-code1106.github.io/PlyGround/
 -------------

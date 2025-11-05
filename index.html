@@ -6,6 +6,7 @@
 <link rel="icon" href="Logo.png" type="image/png">
 <title>PlyGround Physics Engine</title>
 <style>
+  html {cursor: url('pointer.png'), auto; }
   body { margin:0; overflow:hidden; background:#0d1117; color:white; font-family:"Segoe UI",sans-serif; }
   .navbar { display:flex; align-items:center; justify-content:space-between; background:linear-gradient(90deg,#00ff95,#0077ff); padding:10px 20px; }
   .navbar-left { display:flex; align-items:center; }
@@ -218,6 +219,22 @@ function createFireCluster(x, y, sizeFactor = 1) {
 
   ctx.restore();
 })();
+// Track mouse position
+let mouseX = 0, mouseY = 0;
+
+window.addEventListener("mousemove", (e) => {
+  const rect = render.canvas.getBoundingClientRect();
+  mouseX = e.clientX - rect.left;
+  mouseY = e.clientY - rect.top;
+});
+
+// Listen for 'S' key press
+window.addEventListener("keydown", (e) => {
+  if (e.key.toLowerCase() === 's') {
+    createFireCluster(mouseX, mouseY, 1); // sizeFactor = 1
+  }
+});
+
 
 // --- IGNITE & ASH SYSTEM ---
 function igniteNearbyBodies() {
@@ -321,6 +338,14 @@ function crumbleAsh(ash) {
       }
     );
 
+    // Apply a random flying force
+    const forceMagnitude = 0.0005 + Math.random() * 0.0001;
+    const angle = Math.random() * Math.PI * 2; // random direction
+    Body.applyForce(frag, frag.position, {
+      x: Math.cos(angle) * forceMagnitude,
+      y: Math.sin(angle) * forceMagnitude,
+    });
+
     World.add(world, frag);
     spawnedBodies.push(frag);
 
@@ -342,6 +367,7 @@ function crumbleAsh(ash) {
     }, fadeStep);
   }
 }
+
 
 // --- 🔦 TORCH SYSTEM (Dynamic, Textured Torch with Moving Flame) ---
 const torches = [];
