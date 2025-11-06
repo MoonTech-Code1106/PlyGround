@@ -7,7 +7,7 @@ So, Ther are few updates planned like:
 1. Basic Upgarde: 1 - Complete
 2. Basic Upgrade: 2 - Complete
 3. Basic Upgrade: 3 - Complete
-4. UI Update
+4. UI Update - Complete
 6. Lights update
 7. Electronic Update
 
@@ -36,6 +36,8 @@ And here is the Good News, A new **FIRE** Machinic is added in which a new "Torc
 The new **ROPE**, in which, the Q key will activete the function and if hover over a block a Green box will appear if clicked pess the next block, the new Rope will appear binding to remove press R
 
 The New **Screw**, in which, if a object is dragged and pressed Z, a screw will appear, making dynamic things static, can be removed by pressing C
+
+CAN BE PLAYED i mean USED ON MOBILES NOT!!!, Added a NEW UI bar
 
 -------------------------
 **MINOR UPDATES**

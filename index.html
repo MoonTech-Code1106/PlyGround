@@ -16,6 +16,97 @@
   .delete-menu button { background:#111; color:white; border:1px solid #00ff95; border-radius:6px; padding:5px 10px; cursor:pointer; transition:0.2s; }
   .delete-menu button:hover { background:#00ff95; color:black; }
   canvas { display:block; background:#161b22; }
+
+  /* --- NEW UI STYLES --- */
+  /* Sidebar */
+  #sidebar {
+    position: fixed;
+    top: 60px;
+    right: -360px; /* hidden by default */
+    width: 340px;
+    height: calc(100% - 60px);
+    background: linear-gradient(180deg, rgba(10,12,18,0.98), rgba(18,20,28,0.98));
+    border-left: 1px solid rgba(255,255,255,0.03);
+    padding: 14px;
+    box-shadow: -30px 0 60px rgba(0,0,0,0.6);
+    transition: right 0.34s cubic-bezier(.2,.8,.2,1);
+    z-index: 200;
+    overflow-y: auto;
+    backdrop-filter: blur(6px);
+  }
+  #sidebar.open { right: 0; }
+
+  .ui-section-title { font-weight:600; margin: 6px 0 10px 0; color: #dbefff; font-size:14px; }
+  .tab-buttons { display:flex; gap:8px; margin-bottom:12px; }
+  .tab-buttons button {
+    flex:1;
+    padding:8px;
+    border-radius:8px;
+    background: rgba(255,255,255,0.03);
+    color: #cfefff;
+    border: 1px solid rgba(255,255,255,0.04);
+    cursor:pointer;
+  }
+  .tab-buttons button.active { background: rgba(0,255,255,0.08); border-color: rgba(0,255,255,0.18); color: #ffffff; }
+
+  .tab-content { display:none; }
+  .tab-content.active { display:block; }
+
+  .object-item {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px;
+    margin:8px 0;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.03);
+    border-radius:8px;
+    cursor: grab;
+    user-select: none;
+  }
+  .object-item:active { cursor: grabbing; }
+
+  .prop-row { display:flex; justify-content:space-between; gap:8px; align-items:center; margin:8px 0; }
+  .prop-row label { flex:1; font-size:13px; color:#d7eefe; }
+  .prop-row input[type="number"], .prop-row input[type="text"] {
+    width:100px;
+    padding:6px;
+    border-radius:6px;
+    border:1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.02);
+    color: white;
+  }
+  .prop-row input[type="checkbox"] { transform:scale(1.2); }
+
+  #apply-props {
+    margin-top:10px;
+    width:100%;
+    padding:8px;
+    border-radius:8px;
+    border:none;
+    background: linear-gradient(90deg,#00c9ff,#0077ff);
+    color:#001;
+    font-weight:700;
+    cursor:pointer;
+  }
+
+  /* small helper: selection highlight overlay top-right */
+  .ui-hint { position:fixed; right:360px; top:70px; color:rgba(200,220,255,0.65); font-size:12px; z-index:210; display:none; }
+  .ui-hint.visible { display:block; }
+
+  /* make sure canvas area still clickable for drag/drop */
+  #world { touch-action: none; }
+
+  /* menu button */
+  #uiMenuBtn {
+    background: rgba(0,0,0,0.12);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: white;
+    padding:6px 10px;
+    border-radius:8px;
+    cursor:pointer;
+    margin-left:8px;
+  }
 </style>
 </head>
 <body>
@@ -29,10 +120,74 @@
     <button id="delLast">Delete Last</button>
     <button id="delAll">Delete All</button>
     <button id="delMode">Delete Mode: OFF</button>
+    <!-- NEW UI TOGGLE BUTTON (added, doesn't remove anything) -->
+    <button id="uiMenuBtn" title="Open UI">☰ UI</button>
   </div>
 </div>
 
 <canvas id="world"></canvas>
+
+<!-- Sidebar UI (sliding from right) -->
+<div id="sidebar" aria-hidden="true">
+  <div class="tab-buttons">
+    <button class="tab-btn active" data-tab="objects">Objects</button>
+    <button class="tab-btn" data-tab="properties">Properties</button>
+  </div>
+
+  <div id="tab-objects" class="tab-content active">
+    <div class="ui-section-title">Drag & Drop Objects</div>
+
+    <div class="object-item" draggable="true" data-type="box">📦 Box</div>
+    <div class="object-item" draggable="true" data-type="ball">⚪ Ball</div>
+    <div class="object-item" draggable="true" data-type="triangle">🔺 Triangle</div>
+    <div class="object-item" draggable="true" data-type="rod">▬ Rod</div>
+    <div class="object-item" draggable="true" data-type="star">⭐ Star</div>
+    <div class="object-item" draggable="true" data-type="hex">⬣ Hex</div>
+    <div class="object-item" draggable="true" data-type="plank">🪵 Plank</div>
+    <div class="object-item" draggable="true" data-type="miniball">• MiniBall</div>
+    <div class="object-item" draggable="true" data-type="tnt">💣 TNT</div>
+    <div class="object-item" draggable="true" data-type="torch">🕯️ Torch</div>
+
+    <div style="height:20px"></div>
+    <div class="ui-section-title">Quick Tips</div>
+    <div style="font-size:13px;color:#cde8ff;line-height:1.4">
+      • Drag items onto the canvas to spawn.<br>
+      • Double-click an object on the canvas to inspect its properties.<br>
+      • Edit density/friction and press Apply to update live.<br>
+      • Objects marked 'Burnable' will ignite from nearby fire.
+    </div>
+  </div>
+
+  <div id="tab-properties" class="tab-content">
+    <div class="ui-section-title">Selected Object</div>
+    <div id="no-selection" style="color:#9fbfe6;font-size:13px">No object selected. Double-click an object on the canvas.</div>
+
+    <div id="prop-panel" style="display:none">
+      <div class="prop-row">
+        <label>Label</label>
+        <input id="prop-label" type="text" />
+      </div>
+      <div class="prop-row">
+        <label>Density</label>
+        <input id="prop-density" type="number" step="0.01" />
+      </div>
+      <div class="prop-row">
+        <label>Friction</label>
+        <input id="prop-friction" type="number" step="0.01" />
+      </div>
+      <div class="prop-row" style="justify-content:flex-start;">
+        <label style="flex:0 0 auto;margin-right:6px">Burnable</label>
+        <input id="prop-burn" type="checkbox" />
+      </div>
+
+      <button id="apply-props">Apply</button>
+      <div style="height:12px"></div>
+      <div style="font-size:12px;color:#cde8ff">Note: Some changes (like mass/density) may slightly alter current velocities.</div>
+    </div>
+  </div>
+</div>
+
+<div class="ui-hint" id="uiHint">Double-click object → properties appear</div>
 
 <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
 <script>
@@ -79,8 +234,8 @@ function spawnBox(x, y) {
     friction: 0.02,
     render: {
       sprite: {
-        texture: "Box.png",  
-        xScale: 0.15,               
+        texture: "Box.png",
+        xScale: 0.15,
         yScale: 0.15
       }
     },
@@ -215,6 +370,8 @@ function createFireCluster(x, y, sizeFactor = 1) {
     ctx.fillRect(-f.size / 2, -f.size / 2, f.size, f.size);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
 
+    // cleanup dead fire particles
+    if (f.life <= 0) fires.splice(i, 1);
   }
 
   ctx.restore();
@@ -241,7 +398,8 @@ function igniteNearbyBodies() {
   for (const body of spawnedBodies) {
     if (body.isStatic || !body.position) continue;
     if (burningBodies.has(body)) continue;
-    if (body.label !== "Box" && body.label !== "Plank") continue;
+    if (!body.burnable && body.label !== "Box" && body.label !== "Plank") continue;
+
 
     for (const fire of fires) {
       const dx = fire.x - body.position.x;
@@ -252,6 +410,35 @@ function igniteNearbyBodies() {
   }
 }
 setInterval(igniteNearbyBodies, 100);
+
+
+canvas.addEventListener("dblclick", (e) => {
+  const mousePos = { x: e.clientX, y: e.clientY };
+  const found = Matter.Query.point(spawnedBodies, mousePos);
+  if (found.length > 0) {
+    selectedBody = found[0];
+    showProperties(selectedBody);
+  }
+});
+
+function showProperties(body) {
+  document.getElementById("no-selection").style.display = "none";
+  document.getElementById("prop-panel").style.display = "block";
+  document.getElementById("prop-label").value = body.label || "";
+  document.getElementById("prop-density").value = body.density || 0;
+  document.getElementById("prop-friction").value = body.friction || 0;
+  document.getElementById("prop-burn").checked = !!body.burnable;
+}
+
+// Apply property changes
+document.getElementById("apply-props").addEventListener("click", () => {
+  if (!selectedBody) return;
+  selectedBody.label = document.getElementById("prop-label").value;
+  selectedBody.friction = parseFloat(document.getElementById("prop-friction").value) || selectedBody.friction;
+  selectedBody.burnable = document.getElementById("prop-burn").checked;
+  Matter.Body.setDensity(selectedBody, parseFloat(document.getElementById("prop-density").value) || selectedBody.density);
+});
+
 
 function igniteBody(body) {
   if (burningBodies.has(body)) return;
@@ -390,7 +577,7 @@ function spawnTorch(x, y) {
   World.add(world, torch);
   spawnedBodies.push(torch);
   torches.push(torch);
-  
+
 
 
   // 🔥 Fire that follows the top dynamically
@@ -419,7 +606,7 @@ document.addEventListener("keydown", e => {
 // --- TNT ARRAY ---
 let spawnedTNTs = [];
 
-// --- SPAWN TNT (Press T) ---
+// --- SPAWN TNT (Press X) ---
 document.addEventListener("keydown", e => {
   if (e.key.toLowerCase() === "x") {
     const tnt = Bodies.rectangle(mouse.position.x, mouse.position.y, 45, 45, {
@@ -500,7 +687,7 @@ function explodeTNT(tnt) {
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist < radius) {
       // Stronger and more consistent push
-      const forceMag = Math.max(0, 0.55 * (1 - dist / radius)); 
+      const forceMag = Math.max(0, 0.55 * (1 - dist / radius));
       const angle = Math.atan2(dy, dx);
       const force = {
         x: Math.cos(angle) * forceMag,
@@ -741,7 +928,7 @@ document.addEventListener("keydown", e => {
     }
   }
 
-  // Remove screw (press R)
+  // Remove screw (press C)
   if (key === "c") {
     const mousePos = mouse.position;
     for (let i = screws.length - 1; i >= 0; i--) {
@@ -785,4 +972,230 @@ Events.on(render, "afterRender", () => {
   ctx.restore();
 });
 
+/* =========================
+   NEW UI FUNCTIONALITY CODE
+   (ADDED — does not remove old code)
+   ========================= */
+
+// Sidebar toggle
+const uiMenuBtn = document.getElementById('uiMenuBtn');
+const sidebar = document.getElementById('sidebar');
+const uiHint = document.getElementById('uiHint');
+uiMenuBtn.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  sidebar.setAttribute('aria-hidden', !sidebar.classList.contains('open'));
+  uiHint.classList.toggle('visible', sidebar.classList.contains('open'));
+});
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+  });
+});
+
+// Drag setup for object items
+document.querySelectorAll('.object-item').forEach(item => {
+  item.addEventListener('dragstart', (ev) => {
+    ev.dataTransfer.setData('text/plain', item.dataset.type);
+    // show ghost image (optional)
+    try {
+      const crt = item.cloneNode(true);
+      crt.style.position = "absolute";
+      crt.style.top = "-1000px";
+      crt.style.left = "-1000px";
+      document.body.appendChild(crt);
+      ev.dataTransfer.setDragImage(crt, 10, 10);
+      setTimeout(()=> crt.remove(), 0);
+    } catch(e){/* ignore */ }
+  });
+});
+
+// Drop onto canvas
+canvas.addEventListener('dragover', ev => ev.preventDefault());
+canvas.addEventListener('drop', ev => {
+  ev.preventDefault();
+  const type = ev.dataTransfer.getData('text/plain');
+  const rect = canvas.getBoundingClientRect();
+  const x = ev.clientX - rect.left;
+  const y = ev.clientY - rect.top;
+  spawnFromType(type, x, y);
+});
+
+// helper spawn that uses your existing spawn functions (and TNT/torch special cases)
+function spawnFromType(type, x, y) {
+  switch(type) {
+    case 'box': spawnBox(x, y); break;
+    case 'ball': spawnBall(x, y); break;
+    case 'triangle': spawnTriangle(x, y); break;
+    case 'rod': spawnRod(x, y); break;
+    case 'star': spawnStar(x, y); break;
+    case 'hex': spawnHex(x, y); break;
+    case 'plank': spawnPlank(x, y); break;
+    case 'miniball': spawnMiniBall(x, y); break;
+    case 'tnt':
+      {
+        const tnt = Bodies.rectangle(x, y, 45, 45, {
+          label: "TNT",
+          restitution: 0.4,
+          friction: 0.6,
+          render: {
+            fillStyle: "#cc0000",
+            strokeStyle: "#ffffff",
+            lineWidth: 2
+          }
+        });
+        World.add(world, tnt);
+        spawnedBodies.push(tnt);
+        spawnedTNTs.push(tnt);
+      }
+      break;
+    case 'torch':
+      spawnTorch(x, y);
+      break;
+    default:
+      spawnBall(x, y);
+  }
+}
+
+// Double-click selection and properties
+let selectedBody = null;
+let previousSelected = null;
+
+function clearSelectionStyle(body) {
+  if (!body || !body.render) return;
+  // remove custom stroke we might have set
+  if (body.render.strokeStyle) {
+    delete body.render.strokeStyle;
+  }
+  if (body.render.lineWidth) {
+    delete body.render.lineWidth;
+  }
+}
+
+render.canvas.addEventListener('dblclick', (ev) => {
+  const rect = render.canvas.getBoundingClientRect();
+  const x = ev.clientX - rect.left;
+  const y = ev.clientY - rect.top;
+
+  const found = Query.point(spawnedBodies, { x, y }) || [];
+  if (found.length > 0) {
+    if (previousSelected && previousSelected !== found[0]) {
+      clearSelectionStyle(previousSelected);
+    }
+    selectedBody = found[0];
+    previousSelected = selectedBody;
+
+    // add glow style
+    if (!selectedBody.render) selectedBody.render = {};
+    selectedBody.render.strokeStyle = 'cyan';
+    selectedBody.render.lineWidth = 4;
+
+    showProperties(selectedBody);
+  } else {
+    // clicked empty space -> clear selection
+    if (previousSelected) {
+      clearSelectionStyle(previousSelected);
+      previousSelected = null;
+    }
+    selectedBody = null;
+    hideProperties();
+  }
+});
+
+function showProperties(body) {
+  document.querySelector('[data-tab="properties"]').click();
+  document.getElementById('no-selection').style.display = 'none';
+  document.getElementById('prop-panel').style.display = 'block';
+
+  // fill values (guard undefineds)
+  document.getElementById('prop-label').value = body.label || '';
+  document.getElementById('prop-density').value = (typeof body.density === 'number') ? body.density.toFixed(3) : (body.mass ? (body.mass).toFixed(3) : '0.001');
+  document.getElementById('prop-friction').value = (typeof body.friction === 'number') ? body.friction.toFixed(3) : '0.1';
+  document.getElementById('prop-burn').checked = !!body.isBurnable;
+  sidebar.classList.add('open');
+  sidebar.setAttribute('aria-hidden', 'false');
+  uiHint.classList.add('visible');
+}
+
+// hide properties panel
+function hideProperties() {
+  document.getElementById('no-selection').style.display = 'block';
+  document.getElementById('prop-panel').style.display = 'none';
+}
+
+// apply properties live
+document.getElementById('apply-props').addEventListener('click', () => {
+  if (!selectedBody) return;
+  // label
+  selectedBody.label = document.getElementById('prop-label').value || selectedBody.label;
+
+  // density
+  const d = parseFloat(document.getElementById('prop-density').value);
+  if (!isNaN(d) && d > 0) {
+    // Body.setDensity exists — it updates mass based on area.
+    Body.setDensity(selectedBody, d);
+    // keep density property for reading later
+    selectedBody.density = d;
+  }
+
+  // friction
+  const f = parseFloat(document.getElementById('prop-friction').value);
+  if (!isNaN(f)) {
+    selectedBody.friction = f;
+  }
+
+  // burnable flag (used by your ignite logic: you can check isBurnable or override)
+  selectedBody.isBurnable = !!document.getElementById('prop-burn').checked;
+
+  // visual feedback (tiny pulse)
+  const ctx = render.context;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(selectedBody.position.x, selectedBody.position.y, 28, 0, 2 * Math.PI);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = 'rgba(0,255,255,0.6)';
+  ctx.stroke();
+  ctx.restore();
+
+  // re-hide panel if you like, but keep it visible for further edits
+});
+
+// window resize: keep canvas sized
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight - 60;
+  render.options.width = canvas.width;
+  render.options.height = canvas.height;
+  Render.lookAt(render, { min: { x: 0, y: 0 }, max: { x: canvas.width, y: canvas.height } });
+});
+
+// close sidebar if user clicks outside it
+document.addEventListener('click', (ev) => {
+  const target = ev.target;
+  if (!sidebar.contains(target) && !uiMenuBtn.contains(target) && sidebar.classList.contains('open')) {
+    sidebar.classList.remove('open');
+    sidebar.setAttribute('aria-hidden', 'true');
+    uiHint.classList.remove('visible');
+  }
+});
+
+// Prevent UI interfering with Matter mouse events when dragging from sidebar: small timeout to clear mouse state
+document.querySelectorAll('.object-item').forEach(it => {
+  it.addEventListener('dragend', () => {
+    // tiny break to avoid accidental matter drag
+    setTimeout(() => {
+      mouseConstraint.body = null;
+    }, 10);
+  });
+});
+
+/* End of UI additions */
+
 </script>
+</body>
+</html>
