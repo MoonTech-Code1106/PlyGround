@@ -147,6 +147,10 @@
     <div class="object-item" draggable="true" data-type="miniball">• MiniBall</div>
     <div class="object-item" draggable="true" data-type="tnt">💣 TNT</div>
     <div class="object-item" draggable="true" data-type="torch">🕯️ Torch</div>
+    <div class="object-item" draggable="true" data-type="bluestone">🔷 BlueStone</div>
+    <div class="object-item" draggable="true" data-type="quartz">💎 Quartz</div>
+    <div class="object-item" draggable="true" data-type="lamp">💡 Lamp</div>
+
 
     <div style="height:20px"></div>
     <div class="ui-section-title">Quick Tips</div>
@@ -274,6 +278,71 @@ function spawnMiniBall(x, y) {
   World.add(world, small);
   spawnedBodies.push(small);
 }
+// --- 🧱 BlueStone ---
+function spawnBlueStone(x, y) {
+  const stone = Bodies.rectangle(x, y, 70, 70, {
+    restitution: 0.3,
+    friction: 0.9,
+    density: 0.006,
+    render: {
+      sprite: {
+        texture: "bluestone.png", // your BlueStone texture file
+        xScale: 0.2,
+        yScale: 0.2
+      }
+    },
+    label: "BlueStone",
+  });
+  World.add(world, stone);
+  spawnedBodies.push(stone);
+}
+
+// --- 💎 Quartz ---
+function spawnQuartz(x, y) {
+  const quartz = Bodies.polygon(x, y, 6, 40, {
+    restitution: 0.4,
+    friction: 0.7,
+    density: 0.004,
+    render: {
+      sprite: {
+        texture: "quartz.png", // your Quartz texture file
+        xScale: 0.15,
+        yScale: 0.15
+      }
+    },
+    label: "Quartz",
+  });
+  World.add(world, quartz);
+  spawnedBodies.push(quartz);
+}
+
+// --- 💡 Lamp ---
+function spawnLamp(x, y) {
+  const lamp = Bodies.rectangle(x, y, 60, 100, {
+    restitution: 0.3,
+    friction: 0.6,
+    density: 0.003,
+    render: {
+      sprite: {
+        texture: "lamp.png", // your Lamp image file
+        xScale: 0.2,
+        yScale: 0.2
+      }
+    },
+    label: "Lamp",
+  });
+  World.add(world, lamp);
+  spawnedBodies.push(lamp);
+
+  // ✨ Soft light effect around Lamp
+  setInterval(() => {
+    if (!spawnedBodies.includes(lamp)) return;
+    const topX = lamp.position.x;
+    const topY = lamp.position.y - 50;
+    createFireCluster(topX, topY, 0.6);
+  }, 500);
+}
+
 // --- Mouse Control ---
 const mouse = Mouse.create(render.canvas);
 const mouseConstraint = MouseConstraint.create(engine, { mouse, constraint: { stiffness: 0.2, render: { visible: false } } });
@@ -713,7 +782,7 @@ function explodeTNT(tnt) {
   spawnedBodies = spawnedBodies.filter(b => b !== tnt);
   spawnedTNTs = spawnedTNTs.filter(b => b !== tnt);
 }
-// --- 🪢 Real Rope Physics (auto-breaks, no shake) ---
+// --- 🪢 Real Rigid Rope Physics (no stretch, soft bend, realistic look) ---
 const { Constraint, Query } = Matter;
 let ropeMode = false;
 let ropeStart = null;
@@ -790,8 +859,8 @@ Events.on(render, "beforeRender", () => {
   highlightBody = found.length > 0 ? found[0] : null;
 });
 
-// --- Create Realistic Rope ---
-function createRealRope(bodyA, bodyB, segments = 12) {
+// --- Create Rigid Rope (zero stretch, soft bend) ---
+function createRealRope(bodyA, bodyB, segments = 15) {
   const ropeSegments = [];
   const constraints = [];
 
@@ -801,13 +870,13 @@ function createRealRope(bodyA, bodyB, segments = 12) {
   const dy = (end.y - start.y) / (segments + 1);
   const segmentLength = Math.sqrt(dx * dx + dy * dy);
 
-  // Create rope links
+  // 🧩 Create rigid rope links
   for (let i = 0; i < segments; i++) {
     const link = Bodies.circle(start.x + dx * (i + 1), start.y + dy * (i + 1), 3, {
-      friction: 0.4,
+      friction: 0.8,
       restitution: 0,
       mass: 0.1,
-      density: 0.002,
+      density: 0.005,
       collisionFilter: { group: -1 },
       render: { fillStyle: "#ffaa00" }
     });
@@ -815,40 +884,38 @@ function createRealRope(bodyA, bodyB, segments = 12) {
     World.add(world, link);
   }
 
-  // Add constraints (with adaptive stiffness to reduce shaking)
-  constraints.push(Constraint.create({
-    bodyA: bodyA,
-    bodyB: ropeSegments[0],
+  // 🔗 Create very stiff constraints (virtually rigid)
+  const makeConstraint = (A, B) => Constraint.create({
+    bodyA: A,
+    bodyB: B,
     length: segmentLength,
-    stiffness: 0.3
-  }));
+    stiffness: 1,      // <--- full stiffness (no stretch)
+    damping: 0.2,      // <--- removes vibration
+    render: { visible: false }
+  });
 
+  // connect first link to bodyA
+  constraints.push(makeConstraint(bodyA, ropeSegments[0]));
+
+  // connect middle links
   for (let i = 0; i < ropeSegments.length - 1; i++) {
-    constraints.push(Constraint.create({
-      bodyA: ropeSegments[i],
-      bodyB: ropeSegments[i + 1],
-      length: segmentLength,
-      stiffness: 0.3
-    }));
+    constraints.push(makeConstraint(ropeSegments[i], ropeSegments[i + 1]));
   }
 
-  constraints.push(Constraint.create({
-    bodyA: ropeSegments[ropeSegments.length - 1],
-    bodyB: bodyB,
-    length: segmentLength,
-    stiffness: 0.3
-  }));
+  // connect last link to bodyB
+  constraints.push(makeConstraint(ropeSegments[ropeSegments.length - 1], bodyB));
 
+  // add to world
   for (const c of constraints) World.add(world, c);
 
   ropes.push({ bodyA, bodyB, segments: ropeSegments, constraints });
 }
 
+
 // --- Rope Auto-Break System ---
 Events.on(engine, "afterUpdate", () => {
   for (let i = ropes.length - 1; i >= 0; i--) {
     const rope = ropes[i];
-    // if any body no longer exists → break rope
     if (!world.bodies.includes(rope.bodyA) || !world.bodies.includes(rope.bodyB)) {
       removeRope(rope);
       console.log("💥 Rope broke: connected body removed.");
@@ -856,25 +923,39 @@ Events.on(engine, "afterUpdate", () => {
   }
 });
 
-// --- Render rope + highlight ---
+// --- Render rope (fiber texture + bend + highlight) ---
 Events.on(render, "afterRender", () => {
   const ctx = render.context;
   ctx.save();
-  ctx.strokeStyle = "#ffaa00";
-  ctx.lineWidth = 3;
-  ctx.shadowColor = "#ffaa00";
-  ctx.shadowBlur = 6;
 
   for (const rope of ropes) {
-    const pts = rope.segments.map(seg => seg.position);
+    const pts = [rope.bodyA.position, ...rope.segments.map(s => s.position), rope.bodyB.position];
     if (pts.length < 2) continue;
+
+    // 🎨 Rope gradient (brown-gold fiber)
+    const grad = ctx.createLinearGradient(pts[0].x, pts[0].y, pts[pts.length - 1].x, pts[pts.length - 1].y);
+    grad.addColorStop(0, "#b8860b");
+    grad.addColorStop(0.5, "#d2b48c");
+    grad.addColorStop(1, "#b8860b");
+
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 4;
+    ctx.shadowColor = "#d2b48c";
+    ctx.shadowBlur = 8;
+
+    // 🪶 Smooth natural rope bend (quadratic curve)
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
-    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    for (let i = 1; i < pts.length - 1; i++) {
+      const xc = (pts[i].x + pts[i + 1].x) / 2;
+      const yc = (pts[i].y + pts[i + 1].y) / 2;
+      ctx.quadraticCurveTo(pts[i].x, pts[i].y, xc, yc);
+    }
+    ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
     ctx.stroke();
   }
 
-  // Highlight body when in rope mode
+  // ✅ Keep your green/blue selection outline
   if (highlightBody) {
     const b = highlightBody.bounds;
     ctx.strokeStyle = ropeStart ? "#00ffff" : "#00ff00";
@@ -886,6 +967,7 @@ Events.on(render, "afterRender", () => {
 
   ctx.restore();
 });
+
 
 
 // --- 🔩 SCREW SYSTEM (With Texture + Removal) ---
@@ -1129,6 +1211,54 @@ function hideProperties() {
 }
 
 // apply properties live
+
+// --- DELETE SELECTED OBJECT BUTTON ---
+// Create the button dynamically (in case HTML didn't include it)
+const deleteBtn = document.createElement("button");
+deleteBtn.id = "delete-object";
+deleteBtn.textContent = "DELETE";
+Object.assign(deleteBtn.style, {
+  marginTop: "10px",
+  width: "100%",
+  padding: "8px",
+  borderRadius: "8px",
+  border: "none",
+  background: "linear-gradient(90deg,#ff3b3b,#cc0000)",
+  color: "#fff",
+  fontWeight: "700",
+  cursor: "pointer",
+  transition: "0.3s",
+  letterSpacing: "1px"
+});
+
+// Add hover alert animation
+deleteBtn.addEventListener("mouseenter", () => {
+  deleteBtn.style.filter = "brightness(1.2)";
+  deleteBtn.style.transform = "scale(1.05)";
+});
+deleteBtn.addEventListener("mouseleave", () => {
+  deleteBtn.style.filter = "none";
+  deleteBtn.style.transform = "scale(1)";
+});
+
+// Append below Apply button inside the properties panel
+document.getElementById("prop-panel").appendChild(deleteBtn);
+
+// --- Delete object logic ---
+deleteBtn.addEventListener("click", () => {
+  if (!selectedBody) return;
+  const name = selectedBody.label || "this object";
+  if (confirm(`⚠️ Delete "${name}" permanently?`)) {
+    World.remove(world, selectedBody);
+    spawnedBodies = spawnedBodies.filter(b => b !== selectedBody);
+    if (typeof spawnedTNTs !== "undefined")
+      spawnedTNTs = spawnedTNTs.filter(b => b !== selectedBody);
+
+    selectedBody = null;
+    hideProperties();
+  }
+});
+
 document.getElementById('apply-props').addEventListener('click', () => {
   if (!selectedBody) return;
   // label
